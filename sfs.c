@@ -1,4 +1,7 @@
 #include "sfs.h"
+
+#include "process_meta.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -14,8 +17,12 @@
   */
 void sfsVarcharCons(SFSVarchar *varchar, const char* src){
     varchar->len = strlen(src);
+
+    // The function caller is responsible to ensure the buffer size that it is enough.
     strcpy(varchar->buf, src);
 }
+
+
 
 
 /*
@@ -36,6 +43,9 @@ SFSVarchar* sfsVarcharCreate(uint32_t varcharSize, const char* src){
     return *ptr;
 }
 
+
+
+
 /*
  *  <sfsVarcharRelease> function is called to free allocated of "SFSVarchar" object.
  */
@@ -45,31 +55,52 @@ void sfsVarcharRelease(SFSVarchar *varchar){
 }
 
 
+
+
+
+
  /***********************
  *  SFSTable Functions  *
  ************************/
  
-
+/*
+ * I'm kind of confused... Don't know why it's necessary to have this func.
+ */
 void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
     table->storSize = initStorSize;
     table->recordMeta = recordMeta;
     table->database = db;
+    // Todo ?
 }
 
+
+/*
+ * 
+ */
 SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
     SFSTable **ptr = (SFSTable **)malloc(sizeof(SFSTable *)); 
     *ptr = (SFSTable *)malloc(sizeof(SFSTable));
     
     (*ptr)->storSize = initStorSize;
 
+    (*ptr)->recordSize = 0;
+    for (int i = 3; i >= 0; i--){
+        (*ptr)->recordSize |= (int)recordMeta[i];
+        if (i) (*ptr)->recordSize <<= 8;
+    }
+
     (*ptr)->recordMeta = recordMeta;
     (*ptr)->database = db;
     // Todo
 }
 
+
+
 int sfsTableRelease(SFSTable *table){
     // Todo
 }
+
+
 
 int sfsTableReserve(SFSTable **table, uint32_t storSize){
     // Todo
@@ -114,6 +145,9 @@ SFSDatabase* sfsDatabaseCreate(){
     return *ptr;
 }
 
+
+
+
 void sfsDatabaseRelease(SFSDatabase* db){
     for (int i = 0; i < (db->tableNum); i++){
         free(db->table[i]);
@@ -122,13 +156,19 @@ void sfsDatabaseRelease(SFSDatabase* db){
 }
 
 
+
+
 int sfsDatabaseSave(char *fileName, SFSDatabase* db){
 
 }
 
+
+
 SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
 
 }
+
+
 
 SFSTable* sfsDatabaseAddTable(SFSDatabase *db, uint32_t storSize, const SFSVarchar *recordMeta){
     assert(db->tableNum < 0xF);
