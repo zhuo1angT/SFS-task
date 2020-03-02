@@ -18,3 +18,10 @@ Update "SFSTable" functions.
 
 ---
 
+Update all module.
+
+Implement some of the functions..
+
+left a bunch of unfilled holes...
+
+03/02/21:28
