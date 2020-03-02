@@ -44,9 +44,9 @@ inline void sfsCompileTest(){
     BUILD_BUG_ON(sizeof(SFSDatabase) != 84);
 }
 
-int sfsVarcharCons(SFSVarchar *varchar, const char* src);
+void sfsVarcharCons(SFSVarchar *varchar, const char* src);
 SFSVarchar* sfsVarcharCreate(uint32_t varcharSize, const char* src);
-int sfsVarcharRelease(SFSVarchar *varchar);
+void sfsVarcharRelease(SFSVarchar *varchar);
 
 int sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db);
 SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db);
