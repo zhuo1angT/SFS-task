@@ -8,3 +8,13 @@ Might be multiple bugs...
 
 ---
 
+Fix a typo in "sfsVarcharCreate" function.
+
+Add some explaining comment.
+
+Update "SFSTable" functions.
+
+03/02/19:47
+
+---
+

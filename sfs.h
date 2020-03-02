@@ -6,12 +6,12 @@
 
 typedef struct SFSVarchar{
     uint32_t len; /* length of the varchar string(buf[]) */
-    char buf[];
+    char* buf;
 }SFSVarchar;
 
 typedef struct SFSTable{
     uint32_t size;               /* size of the table */
-    uint32_t storSize;           /* free space left in the table */
+    uint32_t storSize;           /* space stored in the table */
     uint32_t freeSpace;          /* free space left in the table */
     uint32_t varcharNum;         /* number of varchars in the table */
     uint32_t recordNum;          /* number of record in the table */
@@ -48,7 +48,7 @@ void sfsVarcharCons(SFSVarchar *varchar, const char* src);
 SFSVarchar* sfsVarcharCreate(uint32_t varcharSize, const char* src);
 void sfsVarcharRelease(SFSVarchar *varchar);
 
-int sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db);
+void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db);
 SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db);
 int sfsTableRelease(SFSTable *table);
 int sfsTableReserve(SFSTable **table, uint32_t storSize);
