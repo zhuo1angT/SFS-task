@@ -6,7 +6,7 @@
 
 typedef struct SFSVarchar{
     uint32_t len; /* length of the varchar string(buf[]) */
-    char* buf;
+    char buf[];
 }SFSVarchar;
 
 typedef struct SFSTable{
@@ -21,7 +21,7 @@ typedef struct SFSTable{
     struct SFSVarchar *recordMeta;   /* pointer of the recordMeta */
     struct SFSVarchar *lastVarchar;  /* pointer of the lastest inserted recordMeta */
     struct SFSDatabase *database;    /* pointer of the database */
-    char* buf;
+    char buf[];
 }SFSTable;
 
 typedef struct SFSDatabase{
@@ -33,7 +33,7 @@ typedef struct SFSDatabase{
     uint8_t pad[3];     /* reserved */
     /* !!! when store in the file, the pointer should change to offset !!!*/
     SFSTable *table[16]; /* pointer of the tables */
-    char* buf;
+    char buf[];
 }SFSDatabase;
 
 #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))

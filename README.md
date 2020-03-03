@@ -41,3 +41,18 @@ There ~~must be~~ countless bug...
 Planed to fix it soon.
 
 03/03/11:10
+
+---
+
+Learn the use of flexible array at the end of a struct.
+
+Make the "sfs.c" file compiles.
+
+Todo: 
+
+1. Rest of the Implementation works
+2. Debug
+
+03/03/12:31
+
+---

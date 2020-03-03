@@ -35,9 +35,10 @@ SFSVarchar* sfsVarcharCreate(uint32_t varcharSize, const char* src){
     // Use malloc to make the pointer on the Heap memory
     
     SFSVarchar **ptr = (SFSVarchar **)malloc(sizeof(SFSVarchar *)); 
-    *ptr = (SFSVarchar *)malloc(sizeof(SFSVarchar));
 
-    (*ptr)->buf = (char *)malloc(varcharSize * sizeof(char));
+    *ptr = (SFSVarchar *)malloc(sizeof(SFSVarchar) + varcharSize * sizeof(char));
+    //(*ptr)->buf = (char *)malloc(varcharSize * sizeof(char));
+    
     strcpy((*ptr)->buf, src);
 
     return *ptr;
@@ -68,10 +69,11 @@ void sfsVarcharRelease(SFSVarchar *varchar){
  */
 void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
     if (table->storSize < initStorSize){
-        table->buf = (char *)malloc(initStorSize * sizeof(char) + sizeof(recordMeta));
+        //table->buf = (char *)malloc(initStorSize * sizeof(char));
+        table = (SFSTable *)malloc(sizeof(SFSTable) + initStorSize * sizeof(char));
     }
     table->storSize = initStorSize;
-    table->recordMeta = recordMeta;
+    table->recordMeta = (SFSVarchar *)recordMeta; // casting from const
     table->database = db;
 }
 
@@ -81,7 +83,7 @@ void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *reco
  */
 SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
     SFSTable **ptr = (SFSTable **)malloc(sizeof(SFSTable *)); 
-    *ptr = (SFSTable *)malloc(sizeof(SFSTable));
+    *ptr = (SFSTable *)malloc(sizeof(SFSTable) + getSTLCapacity(initStorSize) * sizeof(char));
     
     // 0x24 bytes of TableHeader, "initStorSize" bytes of storeing space,
     // sizeof(recordMeta) bytes of attached Meta.
@@ -90,15 +92,17 @@ SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SF
     (*ptr)->freeSpace = getSTLCapacity(initStorSize) - initStorSize;
     (*ptr)->storSize = getSTLCapacity(initStorSize);
         
-    (*ptr)->recordSize = getStructSize(recordMeta);
-    (*ptr)->recordMeta = recordMeta;
+    (*ptr)->recordSize = getStructSize((SFSVarchar *)recordMeta); // casting from const
+    (*ptr)->recordMeta = (SFSVarchar *)recordMeta; // casting from const
 
     (*ptr)->varcharNum = initStorSize / (*ptr)->recordSize;
     (*ptr)->recordNum = initStorSize / initStorSize;
     
     
     (*ptr)->database = db;
-    (*ptr)->buf = (char *)malloc(getSTLCapacity(initStorSize) * sizeof(char));
+    
+    //(*ptr)->buf = (char *)malloc(getSTLCapacity(initStorSize) * sizeof(char));
+
 
     return *ptr;
 }
@@ -120,7 +124,7 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
     SFSTable **ptr = (SFSTable **)malloc(sizeof(SFSTable *));
     *ptr = sfsTableCreate(getSTLCapacity(storSize), (*table)->recordMeta, (*table)->database);
     
-    (*ptr)->size = 0x24 + getSTLCapacity(storSize) + sizeof(recordMeta);
+    (*ptr)->size = 0x24 + getSTLCapacity(storSize) + sizeof((*table)->recordMeta);
 
     (*ptr)->freeSpace = (getSTLCapacity(storSize) - (*table)->storSize) + (*table)->freeSpace;
     (*ptr)->storSize = getSTLCapacity(storSize);
@@ -132,7 +136,8 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
     (*ptr)->recordNum = (*table)->recordNum;
 
     // "db" have aleady been set in <sfsTableCreate>.
-    (*ptr)->buf = (char *)malloc(getSTLCapacity(storSize) * sizeof(char));
+    
+    //(*ptr)->buf = (char *)malloc(getSTLCapacity(storSize) * sizeof(char));
 
     *table = *ptr;
 }
@@ -171,7 +176,7 @@ SFSDatabase* sfsDatabaseCreate(){
     /* (*ptr)->crc = 0xffffffffU; */     // Todo
     (*ptr)->version = 1U;
     (*ptr)->size = 0U;
-    (*ptr)->tableNum = U;
+    (*ptr)->tableNum = 0U;
 
     return *ptr;
 }

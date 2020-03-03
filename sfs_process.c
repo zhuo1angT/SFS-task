@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "process_meta.h"
+#include "sfs_process.h"
 
 
 uint32_t getFieldNum(char *meta){
@@ -14,14 +14,28 @@ uint32_t getFieldNum(char *meta){
 
 
 
-uint32_t getStructSize(char *meta){
+uint32_t getStructSize(SFSVarchar *meta){
     uint32_t totalSize = 0;
-    uint32_t metaLength = strlen(meta); 
-    for (uint32_t i = 4; i < metaLength; i++){
+    for (uint32_t i = 0; i < meta->len; i++){
         // "meta[i] = 0" means the i-th field is a pointer or (and) array,
         // and the sizeof it was dependent, use "sizeof" operator to get the
         // actual pointer-size.
-        totalSize += (meta[i] == 0 ? sizeof(char *) : meta[i]);
+        totalSize += (meta->buf[i] == 0 ? sizeof(char *) : meta->buf[i]);
     }
     return totalSize;
 } 
+
+uint32_t getSTLCapacity(uint32_t storSize){
+    // if storSize is a power of 2
+    if (storSize - (storSize & (-storSize) == 0)){
+        return storSize;
+    }
+    else{
+        while(1){
+            int cur = storSize;
+            storSize -= (storSize & (-StorSize));
+            if (storSize == 0) return cur << 1;
+        }
+        return 0; /* This statement is not expected to be excecuted. */
+    }
+}
