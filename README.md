@@ -56,3 +56,9 @@ Todo:
 03/03/12:31
 
 ---
+
+Implement the two "Adding" functions.
+
+Bug Found: Haven't maintain the "lastVarchar" pointer in the "sfsTableReserve" function.
+
+03/03/14:15  

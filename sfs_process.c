@@ -36,6 +36,18 @@ uint32_t getSTLCapacity(uint32_t storSize){
             storSize -= (storSize & (-StorSize));
             if (storSize == 0) return cur << 1;
         }
-        return 0; /* This statement is not expected to be excecuted. */
+        return 0; /* This line is not expected to be excecuted. */
     }
+}
+
+
+// Remember to free!
+char[4] intToLittleEndian(uint32_t len){
+    char little[4] = (char *)malloc(4 * sizeof(char));
+    uint8_t byte = 0xAA;
+    for (uint32_t i = 0; i < 4; i++){
+        little[i] = len & byte;
+        little[i] >>= 8;
+    }
+    return little;
 }

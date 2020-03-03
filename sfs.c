@@ -152,12 +152,36 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
 
 
 void* sfsTableAddRecord(SFSTable **ptable){
+    // No Enough Space
+    if ((*ptable)->freeSpace < (*ptable)->recordSize){
+        sfsTableReserve(ptable, (*ptable)->storSize * 2);
+    }
+   
+    (*ptable)->freeSpace -= (*ptable)->recordSize;
+    (*ptable)->recordNum++;
 
+    // Already increment "recordNum" by one.
+    return ((*ptable)->buf) + (*ptable)->recordSize * ((*ptable)->recordNum - 1); 
 }
 
 
-SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const char* src){
 
+SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const char* src){
+    // No Enough Space 
+    if ((*ptable)->freeSpace < sizeof(SFSVarchar) + strlen(src)){
+        // Avoid corner case: Doubling the "storSize", and it still can't hold the string 
+        sfsTableReserve(ptable, max((*ptable)->storSize * 2, (*ptable)->storSize + varcharLen + 4));
+    }
+
+    (*ptable)->lastVarchar -= 4 + sizeof(src);
+        
+    char little[4] = intToLittleEndian(varcharLen);
+    for (int32_t i = 0; i < 4; i++){
+        *(((*ptable)->lastVarchar) + i) = little[i];
+    }
+    free(little); // It was allocated in function <intToLittleEndian>
+        
+    strcpy(((*ptable)->lastVarchar) + 4, src);
 }
 
 
