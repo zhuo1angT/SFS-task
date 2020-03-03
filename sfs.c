@@ -254,14 +254,19 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
     printIntToFile(file, db->size);
     printCharToFile(file, db->tableNum);
     printCharToFile(file, 0);               
-    printCharToFile(file, 0);              // A total of 3 pading bytes to align
+    printCharToFile(file, 0);          // A total of 3 pading bytes to align
     printCharToFile(file, 0);               
     
     // 16 * 4B of table offset
     int accum = 0;
     for (int32_t i = 0; i < 0x10; i++){
-        printIntToFile(file, 20 + accum);
-        accum += db->table[i]->size;
+        if (i < db->tableNum){
+            printIntToFile(file, 20 + accum);
+            accum += db->table[i]->size;
+        }
+        else{
+            printIntToFile(0);
+        }
     }
 
     accum = 0;
@@ -301,7 +306,14 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
 
 
 SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
-    // Todo
+    
+    FILE *file;
+    fopen(fileName, "r");
+
+    SFSDatabase *db = sfsDatabaseCreate();
+
+    
+
 }
 
 

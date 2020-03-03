@@ -106,3 +106,11 @@ Update "sfsDatabaseSave", saving Database entities to the given file.
 Change pointer arithmetic to explicit.
 
 03/03/20:04
+
+---
+
+Update two "loading" functions.
+
+Fix a memory reference bug.
+
+03/03/20:40

@@ -61,9 +61,11 @@ char * intToLittleEndian(uint32_t len){
 }
 
 
+
+
 void printIntToFile(FILE *file, uint32_t data){
     uint8_t byte = 0xFF;
-    for (int uint32_t i = 0; i < 4; i++){
+    for (uint32_t i = 0; i < 4; i++){
         fprintf(file, "%c", (uint8_t)(data & byte));
         data >>= 8;
     }
@@ -71,4 +73,24 @@ void printIntToFile(FILE *file, uint32_t data){
 
 void printCharToFile(FILE *file, uint8_t data){
     fprintf(file, "%c", data);
+}
+
+
+
+void LoadIntFromFile(FILE *file, uint32_t *ptr){
+    uint32_t data = 0x0U;
+    uint8_t value;
+    for (uint32_t i = 0; i < 4; i++){
+        fscanf(file, "%c", &value);
+        data |= value;
+        if (i != 3) data <<= 8;
+    }
+    *ptr = data;
+}
+
+
+void LoadCharFromFile(FILE *file, uint8_t *ptr){
+    uint8_t data;
+    fscanf(file, "%c", &data);
+    *ptr = data;
 }
