@@ -62,3 +62,9 @@ Implement the two "Adding" functions.
 Bug Found: Haven't maintain the "lastVarchar" pointer in the "sfsTableReserve" function.
 
 03/03/14:15  
+
+---
+
+Fix "lastVarchar" Bug
+
+03/03/14:35

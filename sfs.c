@@ -122,12 +122,18 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
     }
 
     SFSTable **ptr = (SFSTable **)malloc(sizeof(SFSTable *));
+
+    int32_t lstPointerOffset = (*ptr)->buf + (*ptr)->storSize - (*ptr)->lastVarchar;
+
     *ptr = sfsTableCreate(getSTLCapacity(storSize), (*table)->recordMeta, (*table)->database);
     
     (*ptr)->size = 0x24 + getSTLCapacity(storSize) + sizeof((*table)->recordMeta);
-
     (*ptr)->freeSpace = (getSTLCapacity(storSize) - (*table)->storSize) + (*table)->freeSpace;
     (*ptr)->storSize = getSTLCapacity(storSize);
+
+    
+    (*ptr)->lastVarchar = (*ptr)->buf + (*ptr)->storSize - lstPointerOffset;
+
 
     (*ptr)->recordSize = (*table)->recordSize;
     // "recordMeta" have aleady been set in <sfsTableCreate>.
@@ -137,6 +143,8 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
 
     // "db" have aleady been set in <sfsTableCreate>.
     
+    
+
     //(*ptr)->buf = (char *)malloc(getSTLCapacity(storSize) * sizeof(char));
 
     *table = *ptr;
