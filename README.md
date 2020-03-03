@@ -90,3 +90,11 @@ Fix many bugs.
 Complete the static error checking before database function.
 
 03/03/16:58
+
+---
+
+Update "sfsDatabaseCreate"
+
+Implement "sfsDatabaseAddTable"
+
+03/03/17:16

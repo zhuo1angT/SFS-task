@@ -1,5 +1,8 @@
-#include <stdint.h>
 #include "sfs_process.h"
+#include "sfs.h"
+
+#include <stdint.h>
+
 
 
 uint32_t getFieldNum(const char *meta){

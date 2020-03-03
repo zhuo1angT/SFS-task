@@ -58,7 +58,7 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
 
 SFSDatabase* sfsDatabaseCreate();
 void sfsDatabaseRelease(SFSDatabase* db);
-int sfsDatabaseSave(char *fileName, SFSDatabase* db);
+void sfsDatabaseSave(char *fileName, SFSDatabase* db);
 SFSDatabase* sfsDatabaseCreateLoad(char *fileName);
 SFSTable* sfsDatabaseAddTable(SFSDatabase *db, uint32_t storSize, const SFSVarchar *recordMeta);
 

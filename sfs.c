@@ -220,10 +220,10 @@ SFSDatabase* sfsDatabaseCreate(){
     SFSDatabase **ptr = (SFSDatabase **)malloc(sizeof(SFSDatabase *)); 
     *ptr = (SFSDatabase *)malloc(sizeof(SFSDatabase));
 
-    (*ptr)->magic = 0x534653aaU;
-    /* (*ptr)->crc = 0xffffffffU; */     // Todo
-    (*ptr)->version = 1U;
-    (*ptr)->size = 0U;
+    (*ptr)->magic = 0x534653aaU;        // "SFS."
+    (*ptr)->crc = 0x0U;                 // Just initialize it.
+    (*ptr)->version = 1U;               // Just initialize it.
+    (*ptr)->size = sizeof(SFSDatabase);
     (*ptr)->tableNum = 0U;
 
     return *ptr;
@@ -233,7 +233,7 @@ SFSDatabase* sfsDatabaseCreate(){
 
 
 void sfsDatabaseRelease(SFSDatabase* db){
-    for (int i = 0; i < (db->tableNum); i++){
+    for (int32_t i = 0; i < (db->tableNum); i++){
         free(db->table[i]);
     }
     free(db);
@@ -242,24 +242,26 @@ void sfsDatabaseRelease(SFSDatabase* db){
 
 
 
-int sfsDatabaseSave(char *fileName, SFSDatabase* db){
-
+void sfsDatabaseSave(char *fileName, SFSDatabase* db){
+    // Todo
 }
 
 
 
 SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
-
+    // Todo
 }
 
 
 
 SFSTable* sfsDatabaseAddTable(SFSDatabase *db, uint32_t storSize, const SFSVarchar *recordMeta){
-    assert(db->tableNum <= 0xF);
+    assert(db->tableNum <= 0xF);  // A Database can hold at most 0x10 Tables
+
     SFSTable *newTable = sfsTableCreate(storSize, recordMeta, db);
     db->table[db->tableNum] = newTable;
     db->tableNum++;
-    /* db->size += ___ */     // Todo
+    
+    return newTable;
 }
 
 
