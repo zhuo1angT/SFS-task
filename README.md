@@ -114,3 +114,15 @@ Update two "loading" functions.
 Fix a memory reference bug.
 
 03/03/20:40
+
+---
+
+Update "sfsDatabaseLoad", Loading data from a given file.
+
+It's really nasty, I'm sure there must be countless bugs...
+
+
+
+It's planed to run Unit testing tomorrow.
+
+03/03/22:39

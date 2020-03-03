@@ -122,6 +122,8 @@ SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SF
 
 void sfsTableRelease(SFSTable *table){
     free(table->buf);
+    free(table->recordMeta->buf);
+    free(table->recordMeta);
     free(table);
 }
 
@@ -269,7 +271,7 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
         }
     }
 
-    accum = 0;
+
     for (int32_t i = 0; i < db->tableNum; i++){
 
         SFSTable *cur = db->table[i];
@@ -280,11 +282,11 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
         printIntToFile(file, cur->varcharNum);
         printIntToFile(file, cur->recordNum);
         printIntToFile(file, cur->recordSize);
-        printIntToFile(file, accum + 36 + cur->storSize);      // Offset to the metadata 
-        printIntToFile(file, accum + 36 + ((void *)cur->lastVarchar - (void *)cur->buf)); // Offset to the lastvarchar
+        printIntToFile(file, 36 + cur->storSize);      // Offset to the metadata 
+        printIntToFile(file, 36 + ((void *)cur->lastVarchar - (void *)cur->buf)); // Offset to the lastvarchar
         
         // Unclear here
-        printIntToFile(file, accum + 16); // Offset to the database 
+        printIntToFile(file, 0); // Offset to the database 
          
 
         for (int32_t j = 0; j < cur->storSize; j++){
@@ -297,7 +299,6 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
             printCharToFile(file, cur->recordMeta->buf[j]);
         }
 
-        accum += cur->size;
     }
 
     fclose(file);
@@ -312,8 +313,91 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
 
     SFSDatabase *db = sfsDatabaseCreate();
 
-    
+    int32_t head = 0;
 
+
+    LoadIntFromFile(file, &(db->magic));
+    LoadIntFromFile(file, &(db->crc));
+    LoadIntFromFile(file, &(db->version));
+    LoadIntFromFile(file, &(db->size));
+    LoadCharFromFile(file, &(db->tableNum));
+    LoadCharFromFile(file, db->pad);
+    LoadCharFromFile(file, db->pad + 1);        // A total of 3 padding bytes to align
+    LoadCharFromFile(file, db->pad + 2);        
+
+    head = 0x14;
+
+    for (int32_t i = 0; i < 0x10; i++){
+        if (i < db->tableNum){
+
+            int32_t offsetToTable, offsetToMeta, metaLen, offsetTolstVarchar;
+            int32_t _;   // drop
+            
+            LoadIntFromFile(file, offset);
+
+
+            // from begining of the file, offset
+            // now the "read-pointer" pointers to the "storSize" of the cur table
+
+            fseek(file, offsetToTable + 8, SEEK_SET); // offset 0x08, in the current table
+
+            int32_t curStorSize;
+            SFSVarchar **meta = (SFSVarchar **)malloc(sizeof(SFSVarchar *));
+            
+            LoadIntFromFile(file, &curStorSize);      // offset 0x0c, in the current table
+            fseek(file, 0xc, SEEK_CUR);               // offset 0x18, "offset to the Meta"
+            LoadIntFromFile(file, &offsetToTable);
+            fseek(file, -0x18, SEEK_CUR);             // offset 0x00, the begining of current table
+            fseek(file, offsetToMeta, SEEK_CUR);      // Reached the Meta
+            LoadIntFromFile(file, metaLen);           // Reached the begining of "meta.buf"
+
+
+            *meta = (SFSVarchar *)malloc(sizeof(SFSVarchar) + (size_t)(metaLen + 1)); // With the '\0'
+            
+            for (int32_t i = 0; i < metaLen; i++){
+                LoadCharFromFile(file, ((*meta)->buf) + i);
+            }
+            (*meta)->buf[metaLen] = 0; // terminating '\0'
+            
+
+            // Got enough data to create a table
+            SFSTable *curTable = sfsTableCreate(curStorSize, *meta, db);
+
+            fseek(file, offsetToTable, SEEK_SET); // Go back to Table header
+            LoadCharFromFile(file, &(curTable->size));
+            LoadCharFromFile(file, &(curTable->freeSpace));
+            LoadCharFromFile(file, &(curTable->storSize));
+            LoadCharFromFile(file, &(curTable->varcharNum));
+            LoadCharFromFile(file, &(curTable->recordNum));
+            LoadCharFromFile(file, &(curTable->recordSize)); // 0x18
+            LoadCharFromFile(file, &_);                      // drop
+            LoadCharFromFile(file, &offsetTolstVarchar);
+
+            curTable->recordMeta = *meta; // actually, it had already been set in "create"
+            fseek(file, 0xc, SEEK_CUR);   // Get to the begining of "buf"
+
+            // copy buf data
+            for (int32_t j = 0; j < curTable->storSize; j++){
+                LoadCharFromFile(file, curTable->buf[j]);
+            }
+
+            curTable->lastVarchar = (SFSVarchar)curTable->buf + offsetTolstVarchar - 0x24;
+
+            db->table[i] = curTable;
+
+            fseek(file, head, SEEK_SET);
+        }
+        else{
+            int32_t _;   
+            LoadCharFromFile(file, &_); // drop
+        }
+        
+        head += 4;
+    }
+
+
+    fclose(file);    
+    return db;
 }
 
 
