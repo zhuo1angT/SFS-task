@@ -17,9 +17,9 @@
   */
 void sfsVarcharCons(SFSVarchar *varchar, const char* src){
     varchar->len = strlen(src);
-
-    // The function caller is responsible to ensure the buffer size that is enough.
-    strcpy(varchar->buf, src);
+    varchar->buf = (char *)malloc(sizeof(src));
+    
+    strcpy(varchar->buf, src); // The function caller is responsible to ensure the buffer size that is enough.
 }
 
 
@@ -65,15 +65,21 @@ void sfsVarcharRelease(SFSVarchar *varchar){
  ************************/
  
 /*
- * I'm kind of confused... Don't know why it's necessary to have this func.
+ * (*table) is allocated, its fileds are not.
  */
 void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
-    if (table->storSize < initStorSize){
-        //table->buf = (char *)malloc(initStorSize * sizeof(char));
-        table = (SFSTable *)malloc(sizeof(SFSTable) + initStorSize * sizeof(char));
-    }
+    
+    table = (SFSTable *)malloc(sizeof(SFSTable) + initStorSize * sizeof(char));
+    
+    table->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta.len; 
+    table->freeSpace = initStorSize;
     table->storSize = initStorSize;
+    table->varcharNum = 0;
+    table->recordNum = 0;
+    table->recordSize = getStructSize(recordMeta);
+    
     table->recordMeta = (SFSVarchar *)recordMeta; // casting from const
+    table->lastVarchar = (SFSVarchar *)(table->buf + initStorSize * sizeof(char) - 1);
     table->database = db;
 }
 
@@ -82,12 +88,13 @@ void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *reco
  * 
  */
 SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
+    
     SFSTable **ptr = (SFSTable **)malloc(sizeof(SFSTable *)); 
     *ptr = (SFSTable *)malloc(sizeof(SFSTable) + getSTLCapacity(initStorSize) * sizeof(char));
     
     // 0x24 bytes of TableHeader, "initStorSize" bytes of storeing space,
     // sizeof(recordMeta) bytes of attached Meta.
-    (*ptr)->size = 0x24 + getSTLCapacity(initStorSize) + sizeof(recordMeta);
+    table->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta.len; 
 
     (*ptr)->freeSpace = getSTLCapacity(initStorSize) - initStorSize;
     (*ptr)->storSize = getSTLCapacity(initStorSize);
@@ -96,14 +103,11 @@ SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SF
     (*ptr)->recordMeta = (SFSVarchar *)recordMeta; // casting from const
 
     (*ptr)->varcharNum = initStorSize / (*ptr)->recordSize;
-    (*ptr)->recordNum = initStorSize / initStorSize;
+    (*ptr)->recordNum = 0;
     
-    
+    (*ptr)->lastVarchar = (SFSVarchar *)(table->buf + initStorSize * sizeof(char) - 1);
     (*ptr)->database = db;
     
-    //(*ptr)->buf = (char *)malloc(getSTLCapacity(initStorSize) * sizeof(char));
-
-
     return *ptr;
 }
 
@@ -127,8 +131,8 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
 
     *ptr = sfsTableCreate(getSTLCapacity(storSize), (*table)->recordMeta, (*table)->database);
     
-    (*ptr)->size = 0x24 + getSTLCapacity(storSize) + sizeof((*table)->recordMeta);
-    (*ptr)->freeSpace = (getSTLCapacity(storSize) - (*table)->storSize) + (*table)->freeSpace;
+    (*ptr)->size = sizeof(SFSTable) + getSTLCapacity(storSize) + sizeof(SFSVarchar) + ((*table)->recordMeta).len;
+    (*ptr)->freeSpace = getSTLCapacity(storSize) - (*table)->storSize;
     (*ptr)->storSize = getSTLCapacity(storSize);
 
     
@@ -136,18 +140,21 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
 
 
     (*ptr)->recordSize = (*table)->recordSize;
+
     // "recordMeta" have aleady been set in <sfsTableCreate>.
 
     (*ptr)->varcharNum = (*table)->varcharNum;
     (*ptr)->recordNum = (*table)->recordNum;
 
     // "db" have aleady been set in <sfsTableCreate>.
-    
-    
 
-    //(*ptr)->buf = (char *)malloc(getSTLCapacity(storSize) * sizeof(char));
+
+    // Copy "records" to the new Table
+    memcpy((*ptr)->buf, (*table)->buf, (*table)->recordSize * (*table)->recordNum);
+    memcpy((*ptr)->lastVarchar, (*table)->lastVarchar, lstPointerOffset);
 
     *table = *ptr;
+    sfsTableRelease(*table);
 }
 
 
