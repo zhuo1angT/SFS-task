@@ -31,3 +31,13 @@ left a bunch of unfilled holes...
 "process_meta.h"
 
 03/02/22:48
+
+---
+
+Implement "SFSTable" functions.
+
+There ~~must be~~ countless bug...
+
+Planed to fix it soon.
+
+03/03/11:10
