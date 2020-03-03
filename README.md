@@ -68,3 +68,11 @@ Bug Found: Haven't maintain the "lastVarchar" pointer in the "sfsTableReserve" f
 Fix "lastVarchar" Bug
 
 03/03/14:35
+
+---
+
+Review some code
+
+Fix Compile Error
+
+03/03/15:14

@@ -18,7 +18,7 @@
 void sfsVarcharCons(SFSVarchar *varchar, const char* src){
     varchar->len = strlen(src);
 
-    // The function caller is responsible to ensure the buffer size that it is enough.
+    // The function caller is responsible to ensure the buffer size that is enough.
     strcpy(varchar->buf, src);
 }
 
@@ -32,7 +32,7 @@ void sfsVarcharCons(SFSVarchar *varchar, const char* src){
 SFSVarchar* sfsVarcharCreate(uint32_t varcharSize, const char* src){
 
     // In case the pointer to be destroyed by the end of the function 
-    // Use malloc to make the pointer on the Heap memory
+    // Use malloc to make the pointer allocated on the Heap memory
     
     SFSVarchar **ptr = (SFSVarchar **)malloc(sizeof(SFSVarchar *)); 
 
@@ -123,7 +123,7 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
 
     SFSTable **ptr = (SFSTable **)malloc(sizeof(SFSTable *));
 
-    int32_t lstPointerOffset = (*ptr)->buf + (*ptr)->storSize - (*ptr)->lastVarchar;
+    int32_t lstPointerOffset = (*ptr)->buf + (*ptr)->storSize - (char *)(*ptr)->lastVarchar;
 
     *ptr = sfsTableCreate(getSTLCapacity(storSize), (*table)->recordMeta, (*table)->database);
     
@@ -183,11 +183,15 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
 
     (*ptable)->lastVarchar -= 4 + sizeof(src);
         
-    char little[4] = intToLittleEndian(varcharLen);
+    char little[4];
+    char *_;
+    strcpy(little, _ = intToLittleEndian(varcharLen));
+    
     for (int32_t i = 0; i < 4; i++){
-        *(((*ptable)->lastVarchar) + i) = little[i];
+        *((char *)((*ptable)->lastVarchar)) = little[i];
     }
-    free(little); // It was allocated in function <intToLittleEndian>
+    
+    free(_); // It was allocated in function <intToLittleEndian>
         
     strcpy(((*ptable)->lastVarchar) + 4, src);
 }

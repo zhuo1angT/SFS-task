@@ -9,6 +9,6 @@ uint32_t getStructSize(SFSVarchar *meta);
 uint32_t getSTLCapacity(uint32_t storSize);
 
 // Remember to free!
-char[4] intToLittleEndian(uint32_t len);
+char * intToLittleEndian(uint32_t len);
 
 #endif

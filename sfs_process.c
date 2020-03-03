@@ -42,7 +42,7 @@ uint32_t getSTLCapacity(uint32_t storSize){
 
 
 // Remember to free!
-char[4] intToLittleEndian(uint32_t len){
+char * intToLittleEndian(uint32_t len){
     char little[4] = (char *)malloc(4 * sizeof(char));
     uint8_t byte = 0xAA;
     for (uint32_t i = 0; i < 4; i++){
