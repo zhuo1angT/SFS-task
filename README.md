@@ -98,3 +98,11 @@ Update "sfsDatabaseCreate"
 Implement "sfsDatabaseAddTable"
 
 03/03/17:16
+
+---
+
+Update "sfsDatabaseSave", saving Database entities to the given file.
+
+Change pointer arithmetic to explicit.
+
+03/03/20:04

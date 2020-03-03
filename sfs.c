@@ -2,6 +2,7 @@
 
 #include "sfs_process.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -142,7 +143,7 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
     (*ptr)->storSize = getSTLCapacity(storSize);
 
     
-    (*ptr)->lastVarchar = (*ptr)->buf + (*ptr)->storSize - lstPointerOffset;
+    (*ptr)->lastVarchar = (SFSVarchar *)((*ptr)->buf) + (*ptr)->storSize - lstPointerOffset;
 
 
     (*ptr)->recordSize = (*table)->recordSize;
@@ -191,7 +192,7 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
     // No Enough Space 
     if ((*ptable)->freeSpace < sizeof(SFSVarchar) + strlen(src)){
         // Avoid corner case: Doubling the "storSize", and it still can't hold the string 
-        sfsTableReserve(ptable, max((*ptable)->storSize * 2, (*ptable)->storSize + varcharLen + 4));
+        sfsTableReserve(ptable, fmax((*ptable)->storSize * 2, (*ptable)->storSize + varcharLen + 4));
     }
 
     (*ptable)->lastVarchar -= 4 + sizeof(src);
@@ -205,7 +206,7 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
     
     free(_); // It was allocated in function <intToLittleEndian>
         
-    strcpy(((*ptable)->lastVarchar) + 4, src);
+    strcpy((char *)(((*ptable)->lastVarchar) + 4), (char *)src); // casting
 }
 
 
@@ -243,7 +244,58 @@ void sfsDatabaseRelease(SFSDatabase* db){
 
 
 void sfsDatabaseSave(char *fileName, SFSDatabase* db){
-    // Todo
+
+    FILE *file;
+    file = fopen(fileName, "w");
+
+    printIntToFile(file, db->magic);
+    printIntToFile(file, db->crc);
+    printIntToFile(file, db->version);
+    printIntToFile(file, db->size);
+    printCharToFile(file, db->tableNum);
+    printCharToFile(file, 0);               
+    printCharToFile(file, 0);              // A total of 3 pading bytes to align
+    printCharToFile(file, 0);               
+    
+    // 16 * 4B of table offset
+    int accum = 0;
+    for (int32_t i = 0; i < 0x10; i++){
+        printIntToFile(file, 20 + accum);
+        accum += db->table[i]->size;
+    }
+
+    accum = 0;
+    for (int32_t i = 0; i < db->tableNum; i++){
+
+        SFSTable *cur = db->table[i];
+
+        printIntToFile(file, cur->size);
+        printIntToFile(file, cur->freeSpace);
+        printIntToFile(file, cur->storSize);
+        printIntToFile(file, cur->varcharNum);
+        printIntToFile(file, cur->recordNum);
+        printIntToFile(file, cur->recordSize);
+        printIntToFile(file, accum + 36 + cur->storSize);      // Offset to the metadata 
+        printIntToFile(file, accum + 36 + ((void *)cur->lastVarchar - (void *)cur->buf)); // Offset to the lastvarchar
+        
+        // Unclear here
+        printIntToFile(file, accum + 16); // Offset to the database 
+         
+
+        for (int32_t j = 0; j < cur->storSize; j++){
+            printCharToFile(file, cur->buf[j]);
+        }
+        
+        // Metadata
+        printIntToFile(file, cur->recordMeta->len);
+        for (int32_t j = 0; j < cur->recordMeta->len; j++){
+            printCharToFile(file, cur->recordMeta->buf[j]);
+        }
+
+        accum += cur->size;
+    }
+
+    fclose(file);
 }
 
 

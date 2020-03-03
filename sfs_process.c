@@ -51,11 +51,24 @@ uint32_t getSTLCapacity(uint32_t storSize){
 // Remember to free!
 char * intToLittleEndian(uint32_t len){
     char little[5] = (char *)malloc(5 * sizeof(char));
-    uint8_t byte = 0xAA;
+    uint8_t byte = 0xFF;
     for (uint32_t i = 0; i < 4; i++){
         little[i] = len & byte;
         little[i] >>= 8;
     }
     little[5] = (char)0;
     return little;
+}
+
+
+void printIntToFile(FILE *file, uint32_t data){
+    uint8_t byte = 0xFF;
+    for (int uint32_t i = 0; i < 4; i++){
+        fprintf(file, "%c", (uint8_t)(data & byte));
+        data >>= 8;
+    }
+}
+
+void printCharToFile(FILE *file, uint8_t data){
+    fprintf(file, "%c", data);
 }
