@@ -6,6 +6,13 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <assert.h>
+#include <math.h>
+
+
+
+ /* Author: zhuo1ang */
+
+
 
  /***********************
  * SFSVarchar Functions *
@@ -17,8 +24,7 @@
   */
 void sfsVarcharCons(SFSVarchar *varchar, const char* src){
     varchar->len = strlen(src);
-    varchar->buf = (char *)malloc(sizeof(src));
-    
+  
     strcpy(varchar->buf, src); // The function caller is responsible to ensure the buffer size that is enough.
 }
 
@@ -71,7 +77,7 @@ void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *reco
     
     table = (SFSTable *)malloc(sizeof(SFSTable) + initStorSize * sizeof(char));
     
-    table->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta.len; 
+    table->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta->len; 
     table->freeSpace = initStorSize;
     table->storSize = initStorSize;
     table->varcharNum = 0;
@@ -94,7 +100,7 @@ SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SF
     
     // 0x24 bytes of TableHeader, "initStorSize" bytes of storeing space,
     // sizeof(recordMeta) bytes of attached Meta.
-    table->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta.len; 
+    (*ptr)->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta->len; 
 
     (*ptr)->freeSpace = getSTLCapacity(initStorSize) - initStorSize;
     (*ptr)->storSize = getSTLCapacity(initStorSize);
@@ -105,7 +111,7 @@ SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SF
     (*ptr)->varcharNum = initStorSize / (*ptr)->recordSize;
     (*ptr)->recordNum = 0;
     
-    (*ptr)->lastVarchar = (SFSVarchar *)(table->buf + initStorSize * sizeof(char) - 1);
+    (*ptr)->lastVarchar = (SFSVarchar *)((*ptr)->buf + initStorSize * sizeof(char) - 1);
     (*ptr)->database = db;
     
     return *ptr;
@@ -131,7 +137,7 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
 
     *ptr = sfsTableCreate(getSTLCapacity(storSize), (*table)->recordMeta, (*table)->database);
     
-    (*ptr)->size = sizeof(SFSTable) + getSTLCapacity(storSize) + sizeof(SFSVarchar) + ((*table)->recordMeta).len;
+    (*ptr)->size = sizeof(SFSTable) + getSTLCapacity(storSize) + sizeof(SFSVarchar) + ((*table)->recordMeta)->len;
     (*ptr)->freeSpace = getSTLCapacity(storSize) - (*table)->storSize;
     (*ptr)->storSize = getSTLCapacity(storSize);
 
@@ -168,14 +174,14 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
 
 void* sfsTableAddRecord(SFSTable **ptable){
     // No Enough Space
-    if ((*ptable)->freeSpace < (*ptable)->recordSize){
+    while ((*ptable)->freeSpace < (*ptable)->recordSize){
         sfsTableReserve(ptable, (*ptable)->storSize * 2);
     }
    
     (*ptable)->freeSpace -= (*ptable)->recordSize;
     (*ptable)->recordNum++;
 
-    // Already increment "recordNum" by one.
+    // Already incremented "recordNum" by one.
     return ((*ptable)->buf) + (*ptable)->recordSize * ((*ptable)->recordNum - 1); 
 }
 
@@ -190,8 +196,7 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
 
     (*ptable)->lastVarchar -= 4 + sizeof(src);
         
-    char little[4];
-    char *_;
+    char little[5], *_; // 4 bytes and a terminating \0
     strcpy(little, _ = intToLittleEndian(varcharLen));
     
     for (int32_t i = 0; i < 4; i++){

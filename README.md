@@ -82,3 +82,11 @@ Fix Compile Error
 Review all "sfsVarchar" "sfsTable" code
 
 03/03/16:30
+
+---
+
+Fix many bugs.
+
+Complete the static error checking before database function.
+
+03/03/16:58

@@ -2,7 +2,7 @@
 #include "sfs_process.h"
 
 
-uint32_t getFieldNum(char *meta){
+uint32_t getFieldNum(const char *meta){
     // fieldNum is stored Little-Endian
     uint32_t fieldNum = 0;
     for (uint8_t i = 3; i >= 0; i--){
@@ -14,7 +14,7 @@ uint32_t getFieldNum(char *meta){
 
 
 
-uint32_t getStructSize(SFSVarchar *meta){
+uint32_t getStructSize(const SFSVarchar *meta){
     uint32_t totalSize = 0;
     for (uint32_t i = 0; i < meta->len; i++){
         // "meta[i] = 0" means the i-th field is a pointer or (and) array,
@@ -24,6 +24,8 @@ uint32_t getStructSize(SFSVarchar *meta){
     }
     return totalSize;
 } 
+
+
 
 uint32_t getSTLCapacity(uint32_t storSize){
     // if storSize is a power of 2
@@ -41,13 +43,16 @@ uint32_t getSTLCapacity(uint32_t storSize){
 }
 
 
+
+
 // Remember to free!
 char * intToLittleEndian(uint32_t len){
-    char little[4] = (char *)malloc(4 * sizeof(char));
+    char little[5] = (char *)malloc(5 * sizeof(char));
     uint8_t byte = 0xAA;
     for (uint32_t i = 0; i < 4; i++){
         little[i] = len & byte;
         little[i] >>= 8;
     }
+    little[5] = (char)0;
     return little;
 }
