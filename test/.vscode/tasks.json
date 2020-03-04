@@ -14,6 +14,7 @@
                 "${file}",
                 "/home/zhuo1ang/Workplace/SFS/test/sfs_process.c",
                 "/home/zhuo1ang/Workplace/SFS/test/sfs.c",
+                "/home/zhuo1ang/Workplace/SFS/test/crc32.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-lm"

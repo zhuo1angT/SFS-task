@@ -22,4 +22,5 @@ void LoadIntFromFile(FILE *file, uint32_t *ptr);
 void LoadCharFromFile(FILE *file, uint8_t *ptr);
 
 
+
 #endif

@@ -150,3 +150,9 @@ Make it run successfully on the test.
 Ready to start Task 2.
 
 03/04/19:50
+
+---
+
+Update CRC-32, Check Validity function.
+
+03/05/01:15

@@ -5,7 +5,8 @@
 #include <malloc.h>
 
 
-uint32_t getFieldNum(const SFSVarchar *meta){
+uint32_t getFieldNum(const SFSVarchar *meta)
+{
     // fieldNum is stored Little-Endian
     uint32_t fieldNum = 0;
     for (uint8_t i = 3; i >= 0; i--){
@@ -17,7 +18,8 @@ uint32_t getFieldNum(const SFSVarchar *meta){
 
 
 
-uint32_t getStructSize(const SFSVarchar *meta){
+uint32_t getStructSize(const SFSVarchar *meta)
+{
     uint32_t totalSize = 0;
     for (uint32_t i = 0; i < meta->len; i++){
         // "meta[i] = 0" means the i-th field is a pointer or (and) array,
@@ -30,7 +32,8 @@ uint32_t getStructSize(const SFSVarchar *meta){
 
 
 // Tested 03/04/15:03
-uint32_t getSTLCapacity(uint32_t storSize){
+uint32_t getSTLCapacity(uint32_t storSize)
+{
     // if storSize is a power of 2
     if (storSize - (storSize & (-storSize)) == 0){
         return storSize;
@@ -50,7 +53,8 @@ uint32_t getSTLCapacity(uint32_t storSize){
 
 
 // Tested 03/04/14:01     // Remember to free!
-char * intToLittleEndian(uint32_t len){
+char * intToLittleEndian(uint32_t len)
+{
     char *little = (char *)malloc(4 * sizeof(char));
     uint8_t byte = 0xFF;
     for (uint32_t i = 0; i < 4; i++){
@@ -63,21 +67,25 @@ char * intToLittleEndian(uint32_t len){
 
 
 // Tested 03/04/14:47
-void printIntToFile(FILE *file, uint32_t data){
+void printIntToFile(FILE *file, uint32_t data)
+{
     uint8_t byte = 0xFF;
     for (uint32_t i = 0; i < 4; i++){
         fprintf(file, "%c", (uint8_t)(data & byte));
         data >>= 8;
     }
 }
+
 // Tested 03/04/14:47
-void printCharToFile(FILE *file, uint8_t data){
+void printCharToFile(FILE *file, uint8_t data)
+{
     fprintf(file, "%c", data);
 }
 
 
 // Tested 03/04/14:47
-void LoadIntFromFile(FILE *file, uint32_t *ptr){
+void LoadIntFromFile(FILE *file, uint32_t *ptr)
+{
     uint32_t data = 0x0U;
     uint8_t value;
     for (uint32_t i = 0; i < 4; i++){
@@ -88,7 +96,8 @@ void LoadIntFromFile(FILE *file, uint32_t *ptr){
 }
 
 // Tested 03/04/14:47
-void LoadCharFromFile(FILE *file, uint8_t *ptr){
+void LoadCharFromFile(FILE *file, uint8_t *ptr)
+{
     uint8_t data;
     fscanf(file, "%c", &data);
     *ptr = data;

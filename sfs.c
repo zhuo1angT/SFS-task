@@ -1,6 +1,7 @@
 #include "sfs.h"
 
 #include "sfs_process.h"
+#include "crc32.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -77,17 +78,17 @@ void sfsVarcharRelease(SFSVarchar *varchar){
  */
 void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
     
-    table = (SFSTable *)malloc(sizeof(SFSTable) + initStorSize * sizeof(char));
+    table = (SFSTable *)malloc(sizeof(SFSTable) + getSTLCapacity(initStorSize) * sizeof(char));
     
-    table->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta->len; 
-    table->freeSpace = initStorSize;
-    table->storSize = initStorSize;
+    table->size = sizeof(SFSTable) + getSTLCapacity(initStorSize) + sizeof(SFSVarchar) + recordMeta->len; 
+    table->freeSpace = getSTLCapacity(initStorSize);
+    table->storSize = getSTLCapacity(initStorSize);
     table->varcharNum = 0;
     table->recordNum = 0;
     table->recordSize = getStructSize(recordMeta);
     
     table->recordMeta = (SFSVarchar *)recordMeta; // casting from const
-    table->lastVarchar = (SFSVarchar *)(table->buf + initStorSize * sizeof(char) - 1);
+    table->lastVarchar = (SFSVarchar *)(table->buf + getSTLCapacity(initStorSize) * sizeof(char) - 1);
     table->database = db;
 }
 
@@ -201,7 +202,6 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
     (*ptable)->freeSpace -= 4 + varcharLen;
     (*ptable)->varcharNum++;
 
-
   
     char *tempPtr = (char *)((*ptable)->lastVarchar);   
     tempPtr -= 4 + varcharLen;
@@ -257,6 +257,7 @@ void sfsDatabaseRelease(SFSDatabase* db){
 
 void sfsDatabaseSave(char *fileName, SFSDatabase* db){
 
+
     FILE *file = fopen(fileName, "w");
 
     printIntToFile(file, db->magic);
@@ -310,6 +311,20 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
 
     }
 
+
+    
+    fclose(file);
+
+    // change crc
+    
+    file = fopen(fileName, "rb+");
+    
+    uint32_t crc32 = CRC_32(file, db->size - 8);
+    db->crc = crc32;
+    
+    fseek(file, 4, SEEK_SET);
+    printIntToFile(file, crc32);
+
     fclose(file);
 }
 
@@ -319,8 +334,17 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
     
     FILE *file = fopen(fileName, "r");
 
+    if (!CheckValidity(file)){
+        fprintf(stderr, "Database validity check failed!\n");
+        exit(1);
+    }
+
+
+
     SFSDatabase *db = sfsDatabaseCreate();
 
+
+    fseek(file, 0, SEEK_SET);
     int32_t head = 0;
 
 
@@ -406,6 +430,8 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
         head += 4;
     }
 
+    
+
 
     fclose(file);    
     return db;
@@ -417,9 +443,11 @@ SFSTable* sfsDatabaseAddTable(SFSDatabase *db, uint32_t storSize, const SFSVarch
     assert(db->tableNum <= 0xF);  // A Database can hold at most 0x10 Tables
 
     SFSTable *newTable = sfsTableCreate(storSize, recordMeta, db);
+    
     db->table[db->tableNum] = newTable;
     db->tableNum++;
-    
+    db->size += newTable->size;
+
     return newTable;
 }
 
