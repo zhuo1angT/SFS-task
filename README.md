@@ -126,3 +126,9 @@ It's really nasty, I'm sure there must be countless bugs...
 It's planed to run Unit testing tomorrow.
 
 03/03/22:39
+
+---
+
+Debug and test 5 custom functions.
+
+03/04/14:57
