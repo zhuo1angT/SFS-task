@@ -12,10 +12,8 @@
                 "-g",
                 "${file}",
                 "/home/zhuo1ang/Workplace/SFS/test/sfs_process.c",
-                "/home/zhuo1ang/Workplace/SFS/test/sfs.c",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
-                "-lm"
+                "${fileDirname}/${fileBasenameNoExtension}"
             ],
             "options": {
                 "cwd": "/usr/bin"

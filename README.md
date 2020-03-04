@@ -132,3 +132,13 @@ It's planed to run Unit testing tomorrow.
 Debug and test 5 custom functions.
 
 03/04/14:57
+
+---
+
+Fix many bugs.
+
+Test fuctions including "sfsDatabaseSave"
+
+Todo: Debug "sfsDatabaseLoad"
+
+03/04/17:27

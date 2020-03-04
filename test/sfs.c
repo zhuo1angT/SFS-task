@@ -101,18 +101,18 @@ SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SF
     
     // 0x24 bytes of TableHeader, "initStorSize" bytes of storeing space,
     // sizeof(recordMeta) bytes of attached Meta.
-    (*ptr)->size = sizeof(SFSTable) + initStorSize + sizeof(SFSVarchar) + recordMeta->len; 
+    (*ptr)->size = sizeof(SFSTable) + getSTLCapacity(initStorSize) + sizeof(SFSVarchar) + recordMeta->len; 
 
-    (*ptr)->freeSpace = getSTLCapacity(initStorSize) - initStorSize;
+    (*ptr)->freeSpace = getSTLCapacity(initStorSize);
     (*ptr)->storSize = getSTLCapacity(initStorSize);
         
     (*ptr)->recordSize = getStructSize((SFSVarchar *)recordMeta); // casting from const
     (*ptr)->recordMeta = (SFSVarchar *)recordMeta; // casting from const
 
-    (*ptr)->varcharNum = initStorSize / (*ptr)->recordSize;
+    (*ptr)->varcharNum = 0;
     (*ptr)->recordNum = 0;
     
-    (*ptr)->lastVarchar = (SFSVarchar *)((*ptr)->buf + initStorSize * sizeof(char) - 1);
+    (*ptr)->lastVarchar = (SFSVarchar *)((*ptr)->buf + initStorSize * sizeof(char));
     (*ptr)->database = db;
     
     return *ptr;
@@ -197,18 +197,23 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
         sfsTableReserve(ptable, fmax((*ptable)->storSize * 2, (*ptable)->storSize + varcharLen + 4));
     }
 
-    (*ptable)->lastVarchar -= 4 + sizeof(src);
-        
-    char little[5], *_; // 4 bytes and a terminating \0
-    strcpy(little, _ = intToLittleEndian(varcharLen));
+  
+    char *tempPtr = (char *)((*ptable)->lastVarchar);   
+    tempPtr -= 4 + varcharLen;
+    (*ptable)->lastVarchar = (SFSVarchar *)tempPtr;
+
+    
+    char *little; // 4 bytes 
+    little = intToLittleEndian(varcharLen);
     
     for (int32_t i = 0; i < 4; i++){
-        *((char *)((*ptable)->lastVarchar)) = little[i];
+        char *writePtr = (char *)((*ptable)->lastVarchar);
+        *(writePtr + i) = little[i];
     }
     
-    free(_); // It was allocated in function <intToLittleEndian>
+    free(little); // It was allocated in function <intToLittleEndian>
         
-    strcpy((char *)(((*ptable)->lastVarchar) + 4), (char *)src); // casting
+    strcpy(((char *)((*ptable)->lastVarchar)) + 4, (char *)src); // casting
 }
 
 
@@ -263,11 +268,11 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
     int accum = 0;
     for (int32_t i = 0; i < 0x10; i++){
         if (i < db->tableNum){
-            printIntToFile(file, 20 + accum);
+            printIntToFile(file, 84 + accum);
             accum += db->table[i]->size;
         }
         else{
-            printIntToFile(0);
+            printIntToFile(file, 0);
         }
     }
 
@@ -333,7 +338,7 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
             int32_t offsetToTable, offsetToMeta, metaLen, offsetTolstVarchar;
             int32_t _;   // drop
             
-            LoadIntFromFile(file, offset);
+            LoadIntFromFile(file, &offsetToTable);
 
 
             // from begining of the file, offset
@@ -381,7 +386,7 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
                 LoadCharFromFile(file, curTable->buf[j]);
             }
 
-            curTable->lastVarchar = (SFSVarchar)curTable->buf + offsetTolstVarchar - 0x24;
+            curTable->lastVarchar = (SFSVarchar *)curTable->buf + offsetTolstVarchar - 0x24;
 
             db->table[i] = curTable;
 

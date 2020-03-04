@@ -98,12 +98,24 @@ bool testPrintCharToFile(int testCaseNum){
 }
 
 
+void testGetSTLCapacity(){
+    for (int i = 0; i < 100; i++){
+        uint32_t size = rand() % 65536;
+        printf("size = %d, STLCapacity = %d\n", size, getSTLCapacity(size));
+    }
+}
+
+
 int main(){
 
     srand(time(NULL));
 
-    testPrintIntToFile(100000);
-    testPrintCharToFile(100000);
+    // testPrintIntToFile(100000);
+    // testPrintCharToFile(100000);
+    // testGetSTLCapacity();
+
+
+
 
     return 0;
 }

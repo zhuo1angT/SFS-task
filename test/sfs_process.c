@@ -29,10 +29,10 @@ uint32_t getStructSize(const SFSVarchar *meta){
 } 
 
 
-
+// Tested 03/04/15:03
 uint32_t getSTLCapacity(uint32_t storSize){
     // if storSize is a power of 2
-    if (storSize - (storSize & (-storSize) == 0)){
+    if (storSize - (storSize & (-storSize)) == 0){
         return storSize;
     }
     else{
@@ -51,19 +51,18 @@ uint32_t getSTLCapacity(uint32_t storSize){
 
 // Tested 03/04/14:01     // Remember to free!
 char * intToLittleEndian(uint32_t len){
-    char *little = (char *)malloc(5 * sizeof(char));
+    char *little = (char *)malloc(4 * sizeof(char));
     uint8_t byte = 0xFF;
     for (uint32_t i = 0; i < 4; i++){
         little[i] = len & byte;
         len >>= 8;
     }
-    little[4] = (char)0;
     return little;
 }
 
 
 
-
+// Tested 03/04/14:47
 void printIntToFile(FILE *file, uint32_t data){
     uint8_t byte = 0xFF;
     for (uint32_t i = 0; i < 4; i++){
@@ -71,13 +70,13 @@ void printIntToFile(FILE *file, uint32_t data){
         data >>= 8;
     }
 }
-
+// Tested 03/04/14:47
 void printCharToFile(FILE *file, uint8_t data){
     fprintf(file, "%c", data);
 }
 
 
-
+// Tested 03/04/14:47
 void LoadIntFromFile(FILE *file, uint32_t *ptr){
     uint32_t data = 0x0U;
     uint8_t value;
@@ -88,7 +87,7 @@ void LoadIntFromFile(FILE *file, uint32_t *ptr){
     *ptr = data;
 }
 
-
+// Tested 03/04/14:47
 void LoadCharFromFile(FILE *file, uint8_t *ptr){
     uint8_t data;
     fscanf(file, "%c", &data);
