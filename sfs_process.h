@@ -1,6 +1,8 @@
 #ifndef SFS_PROCESS_H
 #define SFS_PROCESS_H
 
+#include "sfs.h"
+
 #include <stdint.h>
 #include <stdio.h>
 

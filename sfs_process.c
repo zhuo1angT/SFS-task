@@ -2,14 +2,14 @@
 #include "sfs.h"
 
 #include <stdint.h>
+#include <malloc.h>
 
 
-
-uint32_t getFieldNum(const char *meta){
+uint32_t getFieldNum(const SFSVarchar *meta){
     // fieldNum is stored Little-Endian
     uint32_t fieldNum = 0;
     for (uint8_t i = 3; i >= 0; i--){
-        fieldNum |= meta[i];
+        fieldNum |= ((char *)meta)[i];
         if (i) fieldNum <<= 8;
     }
     return fieldNum;
@@ -29,16 +29,16 @@ uint32_t getStructSize(const SFSVarchar *meta){
 } 
 
 
-
+// Tested 03/04/15:03
 uint32_t getSTLCapacity(uint32_t storSize){
     // if storSize is a power of 2
-    if (storSize - (storSize & (-storSize) == 0)){
+    if (storSize - (storSize & (-storSize)) == 0){
         return storSize;
     }
     else{
         while(1){
             int cur = storSize;
-            storSize -= (storSize & (-StorSize));
+            storSize -= (storSize & (-storSize));
             if (storSize == 0) return cur << 1;
         }
         return 0; /* This line is not expected to be excecuted. */
@@ -48,21 +48,21 @@ uint32_t getSTLCapacity(uint32_t storSize){
 
 
 
-// Remember to free!
+
+// Tested 03/04/14:01     // Remember to free!
 char * intToLittleEndian(uint32_t len){
-    char little[5] = (char *)malloc(5 * sizeof(char));
+    char *little = (char *)malloc(4 * sizeof(char));
     uint8_t byte = 0xFF;
     for (uint32_t i = 0; i < 4; i++){
         little[i] = len & byte;
-        little[i] >>= 8;
+        len >>= 8;
     }
-    little[5] = (char)0;
     return little;
 }
 
 
 
-
+// Tested 03/04/14:47
 void printIntToFile(FILE *file, uint32_t data){
     uint8_t byte = 0xFF;
     for (uint32_t i = 0; i < 4; i++){
@@ -70,25 +70,24 @@ void printIntToFile(FILE *file, uint32_t data){
         data >>= 8;
     }
 }
-
+// Tested 03/04/14:47
 void printCharToFile(FILE *file, uint8_t data){
     fprintf(file, "%c", data);
 }
 
 
-
+// Tested 03/04/14:47
 void LoadIntFromFile(FILE *file, uint32_t *ptr){
     uint32_t data = 0x0U;
     uint8_t value;
     for (uint32_t i = 0; i < 4; i++){
         fscanf(file, "%c", &value);
-        data |= value;
-        if (i != 3) data <<= 8;
+        data |= (value << (i * 8));
     }
     *ptr = data;
 }
 
-
+// Tested 03/04/14:47
 void LoadCharFromFile(FILE *file, uint8_t *ptr){
     uint8_t data;
     fscanf(file, "%c", &data);

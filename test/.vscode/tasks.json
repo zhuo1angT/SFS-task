@@ -9,6 +9,7 @@
             "command": "/usr/bin/gcc",
             "args": [
                 "-m32",
+                "-std=c11",
                 "-g",
                 "${file}",
                 "/home/zhuo1ang/Workplace/SFS/test/sfs_process.c",

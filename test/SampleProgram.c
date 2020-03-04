@@ -25,7 +25,17 @@ int main(){
 
 
     db->table[db->tableNum++] = table;
+    db->size += table->size;
 
     sfsDatabaseSave("file.sfs", db);
+
+
+    /* -------- Loading Test -------- */
+
+    SFSDatabase *loaddb = sfsDatabaseCreateLoad("file.sfs");
+    for (int i = 0; i < loaddb->table[0]->storSize; i++){
+        printf("%hhu ", loaddb->table[0]->buf[i]);
+    }
+    
     return 0;
 }

@@ -142,3 +142,11 @@ Test fuctions including "sfsDatabaseSave"
 Todo: Debug "sfsDatabaseLoad"
 
 03/04/17:27
+
+---
+
+Make it run successfully on the test.
+
+Ready to start Task 2.
+
+03/04/19:50
