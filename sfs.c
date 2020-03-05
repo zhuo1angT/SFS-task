@@ -21,10 +21,10 @@
  ************************/
  
  /*
-  *  <sfsVarcharCons> function is called to construct "SFSVarchar"
-  *  object in pre-allocated memory space.
+  *  Construct "SFSVarchar" object in pre-allocated memory space
   */
-void sfsVarcharCons(SFSVarchar *varchar, const char* src){
+void sfsVarcharCons(SFSVarchar *varchar, const char* src)
+{
     varchar->len = strlen(src);
   
     strcpy(varchar->buf, src); // The function caller is responsible to ensure the buffer size that is enough.
@@ -34,33 +34,27 @@ void sfsVarcharCons(SFSVarchar *varchar, const char* src){
 
 
 /*
- *  <sfsVarcharCreate> function is called to construct "SFSVarchar"
- *  object without allocated memory.
+ *  Create "SFSVarchar" object using given parameter, return the object
  */
-SFSVarchar* sfsVarcharCreate(uint32_t varcharSize, const char* src){
+SFSVarchar* sfsVarcharCreate(uint32_t varcharSize, const char* src)
+{
 
-    // In case the pointer to be destroyed by the end of the function 
-    // Use malloc to make the pointer allocated on the Heap memory
-    
-    SFSVarchar **ptr = (SFSVarchar **)malloc(sizeof(SFSVarchar *)); 
+    SFSVarchar *ptr = (SFSVarchar *)malloc(sizeof(SFSVarchar) + (varcharSize + 1) * sizeof(char));
+   
+    ptr->len = varcharSize;
+    strcpy(ptr->buf, src);
 
-    *ptr = (SFSVarchar *)malloc(sizeof(SFSVarchar) + (varcharSize + 1) * sizeof(char));
-    //(*ptr)->buf = (char *)malloc(varcharSize * sizeof(char));
-    
-    (*ptr)->len = varcharSize;
-    strcpy((*ptr)->buf, src);
-
-    return *ptr;
+    return ptr;
 }
 
 
 
 
 /*
- *  <sfsVarcharRelease> function is called to free allocated of "SFSVarchar" object.
+ *  Free memory space of "SFSVarchar" object.
  */
-void sfsVarcharRelease(SFSVarchar *varchar){
-    free(varchar->buf);
+void sfsVarcharRelease(SFSVarchar *varchar)
+{
     free(varchar);
 }
 
@@ -76,7 +70,8 @@ void sfsVarcharRelease(SFSVarchar *varchar){
 /*
  * (*table) is allocated, its fileds are not.
  */
-void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
+void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db)
+{
     
     table = (SFSTable *)malloc(sizeof(SFSTable) + getSTLCapacity(initStorSize) * sizeof(char));
     
@@ -94,44 +89,49 @@ void sfsTableCons(SFSTable *table, uint32_t initStorSize, const SFSVarchar *reco
 
 
 /*
- * 
+ * Create Table and allocate memory using given parameters.
  */
-SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db){
+SFSTable* sfsTableCreate(uint32_t initStorSize, const SFSVarchar *recordMeta, SFSDatabase *db)
+{
     
-    SFSTable **ptr = (SFSTable **)malloc(sizeof(SFSTable *)); 
-    *ptr = (SFSTable *)malloc(sizeof(SFSTable) + getSTLCapacity(initStorSize) * sizeof(char));
+    SFSTable *ptr = (SFSTable *)malloc(sizeof(SFSTable) + getSTLCapacity(initStorSize) * sizeof(char));
     
     // 0x24 bytes of TableHeader, "initStorSize" bytes of storeing space,
     // sizeof(recordMeta) bytes of attached Meta.
-    (*ptr)->size = sizeof(SFSTable) + getSTLCapacity(initStorSize) + sizeof(SFSVarchar) + recordMeta->len; 
+    ptr->size = sizeof(SFSTable) + getSTLCapacity(initStorSize) + sizeof(SFSVarchar) + recordMeta->len; 
 
-    (*ptr)->freeSpace = getSTLCapacity(initStorSize);
-    (*ptr)->storSize = getSTLCapacity(initStorSize);
+    ptr->freeSpace = getSTLCapacity(initStorSize);
+    ptr->storSize = getSTLCapacity(initStorSize);
         
-    (*ptr)->recordSize = getStructSize((SFSVarchar *)recordMeta); // casting from const
-    (*ptr)->recordMeta = (SFSVarchar *)recordMeta; // casting from const
+    ptr->recordSize = getStructSize((SFSVarchar *)recordMeta); // casting from const
+    ptr->recordMeta = (SFSVarchar *)recordMeta; // casting from const
 
-    (*ptr)->varcharNum = 0;
-    (*ptr)->recordNum = 0;
+    ptr->varcharNum = 0;
+    ptr->recordNum = 0;
     
-    (*ptr)->lastVarchar = (SFSVarchar *)((*ptr)->buf + getSTLCapacity(initStorSize) * sizeof(char));
-    (*ptr)->database = db;
+    ptr->lastVarchar = (SFSVarchar *)(ptr->buf + getSTLCapacity(initStorSize) * sizeof(char));
+    ptr->database = db;
     
-    return *ptr;
+    return ptr;
 }
 
 
-
-void sfsTableRelease(SFSTable *table){
-    free(table->buf);
-    free(table->recordMeta->buf);
+/*
+ * Release memory, destroy table object
+ */
+void sfsTableRelease(SFSTable *table)
+{
     free(table->recordMeta);
     free(table);
 }
 
 
-
-void sfsTableReserve(SFSTable **table, uint32_t storSize){
+/*
+ * After calling this function, it is guaranteed that the Table has at least
+ * "storSize" bytes of storSize.
+ */ 
+void sfsTableReserve(SFSTable **table, uint32_t storSize)
+{
     if ((*table)->storSize >= storSize){
         return ;
     }
@@ -176,8 +176,11 @@ void sfsTableReserve(SFSTable **table, uint32_t storSize){
  *  SFSTable Modify Functions  *
  *******************************/
 
-
-void* sfsTableAddRecord(SFSTable **ptable){
+/*
+ * Adding a record to the given table, doubling the storSize when it is necessary.
+ */ 
+void* sfsTableAddRecord(SFSTable **ptable)
+{
     // No Enough Space
     while ((*ptable)->freeSpace < (*ptable)->recordSize){
         sfsTableReserve(ptable, (*ptable)->storSize * 2);
@@ -191,8 +194,11 @@ void* sfsTableAddRecord(SFSTable **ptable){
 }
 
 
-
-SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const char* src){
+/*
+ * Adding a Varchar to the given table, doubling the storSize when it is necessary.
+ */
+SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const char* src)
+{
     // No Enough Space 
     if ((*ptable)->freeSpace < sizeof(SFSVarchar) + strlen(src)){
         // Avoid corner case: Doubling the "storSize", and it still can't hold the string 
@@ -229,7 +235,13 @@ SFSVarchar* sfsTableAddVarchar(SFSTable **ptable, uint32_t varcharLen, const cha
  *  SFSDatabase Functions  *
  **************************/
 
-SFSDatabase* sfsDatabaseCreate(){
+
+
+/*
+ * Create a Database, initialize some variables.
+ */
+SFSDatabase* sfsDatabaseCreate()
+{
     SFSDatabase **ptr = (SFSDatabase **)malloc(sizeof(SFSDatabase *)); 
     *ptr = (SFSDatabase *)malloc(sizeof(SFSDatabase));
 
@@ -244,18 +256,23 @@ SFSDatabase* sfsDatabaseCreate(){
 
 
 
-
-void sfsDatabaseRelease(SFSDatabase* db){
+/*
+ * Release memory spaces, destroy the object.
+ */ 
+void sfsDatabaseRelease(SFSDatabase* db)
+{
     for (int32_t i = 0; i < (db->tableNum); i++){
-        free(db->table[i]);
+        sfsTableRelease(db->table[i]);
     }
     free(db);
 }
 
 
-
-
-void sfsDatabaseSave(char *fileName, SFSDatabase* db){
+/*
+ * Save the data to file whose name is filename.
+ */ 
+void sfsDatabaseSave(char *fileName, SFSDatabase* db)
+{
 
 
     FILE *file = fopen(fileName, "w");
@@ -315,8 +332,8 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
     
     fclose(file);
 
-    // change crc
-    
+
+    /* ---- change crc field --- */
     file = fopen(fileName, "rb+");
     
     uint32_t crc32 = CRC_32(file, db->size - 8);
@@ -329,8 +346,11 @@ void sfsDatabaseSave(char *fileName, SFSDatabase* db){
 }
 
 
-
-SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
+/*
+ * Construct a database using data loaded from file
+ */ 
+SFSDatabase* sfsDatabaseCreateLoad(char *fileName)
+{
     
     FILE *file = fopen(fileName, "r");
 
@@ -338,7 +358,6 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
         fprintf(stderr, "Database validity check failed!\n");
         exit(1);
     }
-
 
 
     SFSDatabase *db = sfsDatabaseCreate();
@@ -357,7 +376,7 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
     LoadCharFromFile(file, db->pad + 1);        // A total of 3 padding bytes to align
     LoadCharFromFile(file, db->pad + 2);        
 
-    head = 0x14;
+    head = 0x14; // head represent cur File read pointer
 
     for (int32_t i = 0; i < 0x10; i++){
         if (i < db->tableNum){
@@ -417,20 +436,17 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
             }
 
             curTable->lastVarchar = (SFSVarchar *)curTable->buf + offsetTolstVarchar - 0x24;
-
             db->table[i] = curTable;
 
             fseek(file, head, SEEK_SET);
         }
         else{
-            int32_t _;   
+            int8_t _;   
             LoadCharFromFile(file, &_); // drop
         }
         
         head += 4;
     }
-
-    
 
 
     fclose(file);    
@@ -439,7 +455,11 @@ SFSDatabase* sfsDatabaseCreateLoad(char *fileName){
 
 
 
-SFSTable* sfsDatabaseAddTable(SFSDatabase *db, uint32_t storSize, const SFSVarchar *recordMeta){
+/*
+ * Create and add a table to the given database 
+ */ 
+SFSTable* sfsDatabaseAddTable(SFSDatabase *db, uint32_t storSize, const SFSVarchar *recordMeta)
+{
     assert(db->tableNum <= 0xF);  // A Database can hold at most 0x10 Tables
 
     SFSTable *newTable = sfsTableCreate(storSize, recordMeta, db);
@@ -455,7 +475,7 @@ SFSTable* sfsDatabaseAddTable(SFSDatabase *db, uint32_t storSize, const SFSVarch
 
 
 // Error Report Function
-
-char *sfsErrMsg(){
-
+char *sfsErrMsg()
+{
+    return "";
 }

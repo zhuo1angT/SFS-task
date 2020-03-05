@@ -156,3 +156,11 @@ Ready to start Task 2.
 Update CRC-32, Check Validity function.
 
 03/05/01:15
+
+---
+
+Fix "free" bugs.
+
+Add some comment.
+
+03/05/11:10

@@ -8,7 +8,8 @@
 #include <time.h>
 
 /*
-SFSVarchar * genMeta(){
+SFSVarchar * genMeta()
+{
     int fieldNum = rand() % 10 + 1;
     //for (int i = 0; i < )
     return NULL;
@@ -17,7 +18,8 @@ SFSVarchar * genMeta(){
 
 
 /* Tested 03/04/14:01 */
-void testIntToLE(uint32_t data){
+void testIntToLE(uint32_t data)
+{
     char *little; // 4 bytes and a terminating \0
     little = intToLittleEndian(data);
     
@@ -27,7 +29,8 @@ void testIntToLE(uint32_t data){
     free(little);
 }
 
-void testIntToLE_main(){
+void testIntToLE_main()
+{
     uint32_t testInput;
     while(scanf("%u", &testInput) != EOF){
         testIntToLE(testInput);
@@ -35,7 +38,8 @@ void testIntToLE_main(){
 }
 
 
-bool testPrintIntToFile(int testCaseNum){
+bool testPrintIntToFile(int testCaseNum)
+{
 
     for (int i = 0; i < testCaseNum; i++){
         FILE *writeFile = fopen("testFile.sfs", "w");
@@ -67,7 +71,8 @@ bool testPrintIntToFile(int testCaseNum){
 }
 
 
-bool testPrintCharToFile(int testCaseNum){
+bool testPrintCharToFile(int testCaseNum)
+{
 
     for (int i = 0; i < testCaseNum; i++){
         FILE *writeFile = fopen("testFile.sfs", "w");
@@ -98,7 +103,8 @@ bool testPrintCharToFile(int testCaseNum){
 }
 
 
-void testGetSTLCapacity(){
+void testGetSTLCapacity()
+{
     for (int i = 0; i < 100; i++){
         uint32_t size = rand() % 65536;
         printf("size = %d, STLCapacity = %d\n", size, getSTLCapacity(size));
@@ -106,7 +112,8 @@ void testGetSTLCapacity(){
 }
 
 
-int main(){
+int main()
+{
 
     srand(time(NULL));
 

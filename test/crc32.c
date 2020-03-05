@@ -81,17 +81,21 @@ uint32_t CRC_32(FILE *file, uint32_t len)
     fseek(file, 0x8, SEEK_SET);
     fread(s, 1, len, file);
 
+
     uint32_t crc32 = 0xFFFFFFFF;
 
     for (int i = 0;  i < len;  i++){
         crc32 = CRC32_Table[(crc32 ^ s[i]) & 0xFF] ^ ((crc32 >> 8) & 0x00FFFFFF);
     }
+
     free(s);
+    fseek(file, 0, SEEK_SET);
     return crc32 ^ 0xFFFFFFFF;
 }
 
 
-bool CheckValidity(FILE *file){
+bool CheckValidity(FILE *file)
+{
 
     uint32_t calc, len, crc32;
 
