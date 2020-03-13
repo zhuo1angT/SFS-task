@@ -6,6 +6,13 @@
 #include <malloc.h>
 
 
+// Remark:
+// as the "xor" operator is both commutative and associative
+// we can do the CRC calc not only bit by bit
+// but also bytes by bytes
+// pre-calculate all the 2 ^ 8 (power) cases of xor result
+// and stores it into this table
+
 static const uint32_t CRC32_Table[256] =
 {
    0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA,
